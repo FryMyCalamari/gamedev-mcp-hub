@@ -1,0 +1,165 @@
+{
+  "servers": {
+    "godot": {
+      "enabled": false,
+      "command": "python",
+      "args": ["path/to/godot-mcp/server.py"],
+      "category": "game-engine",
+      "priority": "high",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Godot Engine integration for scene manipulation and scripting",
+      "env": {}
+    },
+    "unity-nurture": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "@nurture-tech/unity-mcp-runner"],
+      "category": "game-engine",
+      "priority": "high",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Unity Engine integration with multimodal vision support",
+      "env": {}
+    },
+    "unity-codergamester": {
+      "enabled": false,
+      "command": "node",
+      "args": ["path/to/mcp-unity/dist/index.js"],
+      "category": "game-engine",
+      "priority": "high",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Unity Engine integration via WebSocket",
+      "env": {}
+    },
+    "unreal": {
+      "enabled": false,
+      "command": "node",
+      "args": ["path/to/UnrealMCP/dist/index.js"],
+      "category": "game-engine",
+      "priority": "medium",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Unreal Engine integration (early development)",
+      "env": {}
+    },
+    "blender": {
+      "enabled": false,
+      "command": "node",
+      "args": ["path/to/blender-mcp/dist/index.js"],
+      "category": "3d-modeling",
+      "priority": "high",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Blender 3D modeling and animation integration",
+      "env": {}
+    },
+    "rhino": {
+      "enabled": false,
+      "command": "python",
+      "args": ["path/to/rhinomcp/server.py"],
+      "category": "3d-modeling",
+      "priority": "medium",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Rhino CAD and NURBS modeling integration",
+      "env": {}
+    },
+    "pixellab": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "pixellab-mcp"],
+      "category": "art-generation",
+      "priority": "high",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 60000,
+      "description": "Pixel art character, animation, and tileset generation",
+      "env": {
+        "PIXELLAB_API_KEY": "your-api-key-here"
+      }
+    },
+    "github": {
+      "enabled": false,
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "ghcr.io/github/github-mcp-server"],
+      "category": "development",
+      "priority": "high",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "GitHub repository and project management",
+      "env": {
+        "GITHUB_TOKEN": "your-github-token-here"
+      }
+    },
+    "discord": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "discordmcp"],
+      "category": "community",
+      "priority": "medium",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Discord community management and automation",
+      "env": {
+        "DISCORD_BOT_TOKEN": "your-discord-bot-token-here"
+      }
+    },
+    "opgg": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "@opgginc/opgg-mcp"],
+      "category": "analytics",
+      "priority": "low",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Gaming analytics and player statistics",
+      "env": {}
+    },
+    "game-asset-generator": {
+      "enabled": false,
+      "command": "node",
+      "args": ["path/to/game-asset-mcp/src/index.js"],
+      "category": "art-generation",
+      "priority": "medium",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 60000,
+      "description": "2D/3D game asset generation using Hugging Face models",
+      "env": {
+        "HF_TOKEN": "your-huggingface-token-here"
+      }
+    },
+    "spine2d": {
+      "enabled": false,
+      "command": "python",
+      "args": ["path/to/spine2d-animation-mcp/src/main.py"],
+      "category": "animation",
+      "priority": "medium",
+      "auto_reconnect": true,
+      "retry_attempts": 3,
+      "timeout": 30000,
+      "description": "Spine2D animation creation from PSD files",
+      "env": {}
+    }
+  },
+  "defaults": {
+    "health_check_interval": 30000,
+    "health_check_timeout": 5000,
+    "max_connection_failures": 3,
+    "auto_reconnect": true,
+    "circuit_breaker_enabled": true,
+    "circuit_breaker_threshold": 5,
+    "circuit_breaker_timeout": 60000
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "categories": {
+    "game-engine": {
+      "name": "Game Engines",
+      "description": "Game engine integrations (Unity, Godot, Unreal)",
+      "icon": "🎮",
+      "priority": 1,
+      "tools_prefix": ["unity", "godot", "unreal"],
+      "tags": ["engine", "scene", "gameplay", "scripting"]
+    },
+    "3d-modeling": {
+      "name": "3D Modeling & Design",
+      "description": "3D modeling and CAD tools (Blender, Rhino)",
+      "icon": "🎨",
+      "priority": 2,
+      "tools_prefix": ["blender", "rhino"],
+      "tags": ["modeling", "3d", "mesh", "sculpting", "cad"]
+    },
+    "art-generation": {
+      "name": "Art Generation",
+      "description": "AI-powered art and asset generation",
+      "icon": "✨",
+      "priority": 3,
+      "tools_prefix": ["pixellab", "game-asset-generator"],
+      "tags": ["generation", "ai", "sprites", "textures", "pixel-art"]
+    },
+    "animation": {
+      "name": "Animation",
+      "description": "Character animation and rigging tools",
+      "icon": "🎬",
+      "priority": 4,
+      "tools_prefix": ["spine2d"],
+      "tags": ["animation", "rigging", "skeletal", "timeline"]
+    },
+    "audio": {
+      "name": "Audio & Music",
+      "description": "Sound design and music generation",
+      "icon": "🎵",
+      "priority": 5,
+      "tools_prefix": ["audio"],
+      "tags": ["sound", "music", "sfx", "audio"]
+    },
+    "development": {
+      "name": "Development Tools",
+      "description": "Version control, CI/CD, and development utilities",
+      "icon": "💻",
+      "priority": 6,
+      "tools_prefix": ["github", "testing", "code-quality"],
+      "tags": ["git", "version-control", "testing", "ci-cd"]
+    },
+    "community": {
+      "name": "Community Management",
+      "description": "Community platforms and communication tools",
+      "icon": "👥",
+      "priority": 7,
+      "tools_prefix": ["discord"],
+      "tags": ["community", "chat", "social", "moderation"]
+    },
+    "analytics": {
+      "name": "Analytics & Data",
+      "description": "Game analytics and player insights",
+      "icon": "📊",
+      "priority": 8,
+      "tools_prefix": ["opgg", "analytics"],
+      "tags": ["analytics", "data", "metrics", "stats"]
+    },
+    "security": {
+      "name": "Security & Compliance",
+      "description": "Security scanning and vulnerability detection",
+      "icon": "🔒",
+      "priority": 9,
+      "tools_prefix": ["security"],
+      "tags": ["security", "vulnerability", "compliance", "audit"]
+    },
+    "deployment": {
+      "name": "Deployment & Scaling",
+      "description": "Cloud deployment and infrastructure management",
+      "icon": "🚀",
+      "priority": 10,
+      "tools_prefix": ["deployment", "cloud"],
+      "tags": ["deployment", "cloud", "scaling", "infrastructure"]
+    },
+    "hub": {
+      "name": "Hub Management",
+      "description": "Hub-level tools for management and discovery",
+      "icon": "🔧",
+      "priority": 0,
+      "tools_prefix": ["hub"],
+      "tags": ["hub", "management", "search", "discovery"]
+    }
+  },
+  "tags": {
+    "beginner-friendly": {
+      "name": "Beginner Friendly",
+      "description": "Tools suitable for beginners",
+      "color": "green"
+    },
+    "advanced": {
+      "name": "Advanced",
+      "description": "Tools requiring advanced knowledge",
+      "color": "red"
+    },
+    "experimental": {
+      "name": "Experimental",
+      "description": "Experimental or early-stage tools",
+      "color": "yellow"
+    },
+    "stable": {
+      "name": "Stable",
+      "description": "Production-ready and stable tools",
+      "color": "blue"
+    },
+    "ai-powered": {
+      "name": "AI Powered",
+      "description": "Tools using AI/ML capabilities",
+      "color": "purple"
+    },
+    "real-time": {
+      "name": "Real-time",
+      "description": "Tools with real-time capabilities",
+      "color": "orange"
+    }
+  }
+}

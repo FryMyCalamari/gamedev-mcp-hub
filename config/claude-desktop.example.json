@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "gamedev-hub": {
+      "command": "node",
+      "args": [
+        "/full/path/to/gamedev-mcp-hub/dist/index.js"
+      ],
+      "env": {
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
