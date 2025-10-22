@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rain World x Celeste - Pixel Art Demo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f0f1b;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #info {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #ff77a8;
+      z-index: 1000;
+    }
+    h2 {
+      color: #ff77a8;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 11px;
+      color: #aaa;
+      margin: 5px 0;
+    }
+    .highlight { color: #5fcde4; font-weight: bold; }
+    #controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 8px;
+      border: 2px solid #5fcde4;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h2>🎮 RAIN WORLD x CELESTE</h2>
+    <p><span class="highlight">Style</span>: Atmospheric Pixel Platformer</p>
+    <p><span class="highlight">Genre</span>: Precision Movement + Exploration</p>
+    <p><span class="highlight">Aesthetic</span>: Moody + Clean</p>
+  </div>
+
+  <div id="controls">
+    <p><span class="highlight">WASD</span> - Move | <span class="highlight">SPACE</span> - Jump</p>
+    <p><span class="highlight">SHIFT</span> - Dash | <span class="highlight">R</span> - Reset</p>
+  </div>
+
+  <script>
+    // ============================================
+    // RAIN WORLD x CELESTE STYLE PLATFORMER DEMO
+    // ============================================
+
+    // Color Palettes
+    const PALETTE = {
+      // Rain World - muted, atmospheric
+      bgDark: '#1a1c2c',
+      bgMid: '#3e3546',
+      platform: '#5a4a78',
+      accentCold: '#5fcde4',
+      accentWarm: '#ef7d57',
+      
+      // Celeste - clean, vibrant
+      character: '#ff77a8',
+      crystal: '#ffccaa',
+      snow: '#fff1e8',
+      mountain: '#2d3b57',
+    };
+
+    let player;
+    let platforms = [];
+    let collectibles = [];
+    let particles = [];
+    let cameraY = 0;
+    let pixelSize = 4; // Scale factor for pixel art
+
+    function setup() {
+      createCanvas(800, 600);
+      noSmooth(); // Pixel-perfect rendering
+      
+      // Create player
+      player = new Player(width / 2, height / 2);
+      
+      // Generate level
+      generateLevel();
+      
+      // Add collectibles
+      for (let i = 0; i < 5; i++) {
+        collectibles.push(new Crystal(random(100, width - 100), random(100, height - 300)));
+      }
+    }
+
+    function draw() {
+      background(PALETTE.bgDark);
+      
+      // Smooth camera follow
+      let targetY = constrain(player.y - height / 2, 0, 1000);
+      cameraY = lerp(cameraY, targetY, 0.1);
+      translate(0, -cameraY);
+      
+      // Draw background layers (parallax)
+      drawBackground();
+      
+      // Draw platforms
+      for (let platform of platforms) {
+        platform.show();
+      }
+      
+      // Update and draw collectibles
+      for (let i = collectibles.length - 1; i >= 0; i--) {
+        collectibles[i].show();
+        if (collectibles[i].collect(player)) {
+          // Particle burst
+          for (let j = 0; j < 20; j++) {
+            particles.push(new Particle(collectibles[i].x, collectibles[i].y, PALETTE.crystal));
+          }
+          collectibles.splice(i, 1);
+        }
+      }
+      
+      // Update and draw particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].show();
+        if (particles[i].isDead()) {
+          particles.splice(i, 1);
+        }
+      }
+      
+      // Update and draw player
+      player.update();
+      player.checkCollisions(platforms);
+      player.show();
+      
+      // Draw foreground elements
+      drawForeground();
+      
+      // HUD (doesn't move with camera)
+      push();
+      translate(0, cameraY);
+      drawHUD();
+      pop();
+    }
+
+    // ============================================
+    // PLAYER CLASS (Celeste-style movement)
+    // ============================================
+
+    class Player {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.w = 8 * pixelSize;
+        this.h = 8 * pixelSize;
+        this.grounded = false;
+        this.canDash = true;
+        this.dashTimer = 0;
+        this.jumpTimer = 0;
+        this.moveSpeed = 4;
+        this.jumpForce = -12;
+        this.gravity = 0.8;
+        this.dashSpeed = 15;
+        this.facingRight = true;
+        
+        // Animation
+        this.hairOffset = 0;
+        this.squashFactor = 1;
+      }
+
+      update() {
+        // Horizontal movement
+        if (keyIsDown(65)) { // A
+          this.vx = -this.moveSpeed;
+          this.facingRight = false;
+        } else if (keyIsDown(68)) { // D
+          this.vx = this.moveSpeed;
+          this.facingRight = true;
+        } else {
+          this.vx *= 0.8; // Friction
+        }
+
+        // Jump (with coyote time)
+        if (keyIsDown(32) && (this.grounded || this.jumpTimer > 0)) { // SPACE
+          this.vy = this.jumpForce;
+          this.grounded = false;
+          this.squashFactor = 0.8;
+        }
+
+        // Dash
+        if (keyIsDown(16) && this.canDash) { // SHIFT
+          let dashDir = this.facingRight ? 1 : -1;
+          this.vx = this.dashSpeed * dashDir;
+          this.canDash = false;
+          this.dashTimer = 10;
+        }
+
+        // Gravity
+        if (!this.grounded) {
+          this.vy += this.gravity;
+        }
+
+        // Update position
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Timers
+        if (this.jumpTimer > 0) this.jumpTimer--;
+        if (this.dashTimer > 0) this.dashTimer--;
+        
+        // Reset dash on ground
+        if (this.grounded && !this.canDash) {
+          this.canDash = true;
+        }
+
+        // Animation
+        this.hairOffset = sin(frameCount * 0.2) * 2;
+        this.squashFactor = lerp(this.squashFactor, 1, 0.1);
+
+        // Bounds
+        this.x = constrain(this.x, 0, width);
+      }
+
+      checkCollisions(platforms) {
+        this.grounded = false;
+        
+        for (let platform of platforms) {
+          // Simple AABB collision
+          if (this.x + this.w > platform.x &&
+              this.x < platform.x + platform.w &&
+              this.y + this.h > platform.y &&
+              this.y < platform.y + platform.h) {
+            
+            // Collision from above
+            if (this.vy > 0) {
+              this.y = platform.y - this.h;
+              this.vy = 0;
+              this.grounded = true;
+              this.jumpTimer = 5; // Coyote time
+              this.squashFactor = 1.2;
+            }
+          }
+        }
+      }
+
+      show() {
+        push();
+        
+        // Dash trail
+        if (this.dashTimer > 0) {
+          fill(PALETTE.character + '40');
+          for (let i = 0; i < 3; i++) {
+            rect(this.x - i * 8, this.y, this.w, this.h);
+          }
+        }
+
+        // Hair (Rain World inspired - flowing)
+        fill(PALETTE.accentWarm);
+        noStroke();
+        for (let i = 0; i < 3; i++) {
+          let offset = this.hairOffset + i * 3;
+          rect(
+            this.x + (this.facingRight ? -4 : this.w),
+            this.y - 4 + offset,
+            4,
+            12
+          );
+        }
+
+        // Body (Celeste style - clean)
+        fill(PALETTE.character);
+        noStroke();
+        rect(this.x, this.y, this.w, this.h * this.squashFactor);
+
+        // Eyes
+        fill(PALETTE.bgDark);
+        rect(this.x + 2 * pixelSize, this.y + 2 * pixelSize, pixelSize, pixelSize);
+        rect(this.x + 5 * pixelSize, this.y + 2 * pixelSize, pixelSize, pixelSize);
+
+        pop();
+      }
+    }
+
+    // ============================================
+    // PLATFORM CLASS
+    // ============================================
+
+    class Platform {
+      constructor(x, y, w, h, type = 'solid') {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.type = type;
+      }
+
+      show() {
+        push();
+        noStroke();
+        
+        // Platform color based on type
+        if (this.type === 'moss') {
+          fill(PALETTE.platform);
+          rect(this.x, this.y, this.w, this.h);
+          // Moss on top
+          fill('#4ecca3');
+          rect(this.x, this.y, this.w, 4);
+        } else {
+          fill(PALETTE.platform);
+          rect(this.x, this.y, this.w, this.h);
+          
+          // Highlight (top edge)
+          fill(PALETTE.snow + '40');
+          rect(this.x, this.y, this.w, 2);
+          
+          // Shadow (bottom edge)
+          fill(PALETTE.bgDark + '80');
+          rect(this.x, this.y + this.h - 2, this.w, 2);
+        }
+        
+        pop();
+      }
+    }
+
+    // ============================================
+    // CRYSTAL COLLECTIBLE (Celeste style)
+    // ============================================
+
+    class Crystal {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.w = 16;
+        this.h = 16;
+        this.angle = 0;
+        this.collected = false;
+      }
+
+      collect(player) {
+        if (!this.collected) {
+          let d = dist(this.x, this.y, player.x + player.w / 2, player.y + player.h / 2);
+          if (d < 30) {
+            this.collected = true;
+            return true;
+          }
+        }
+        return false;
+      }
+
+      show() {
+        if (this.collected) return;
+        
+        push();
+        translate(this.x, this.y);
+        rotate(this.angle);
+        
+        // Glow
+        fill(PALETTE.crystal + '40');
+        noStroke();
+        circle(0, 0, 40);
+        
+        // Crystal
+        fill(PALETTE.crystal);
+        beginShape();
+        vertex(0, -8);
+        vertex(6, 0);
+        vertex(0, 8);
+        vertex(-6, 0);
+        endShape(CLOSE);
+        
+        // Highlight
+        fill(PALETTE.snow);
+        triangle(-3, -4, 0, -6, 3, -4);
+        
+        pop();
+        
+        this.angle += 0.02;
+      }
+    }
+
+    // ============================================
+    // PARTICLE SYSTEM
+    // ============================================
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = random(-5, 5);
+        this.vy = random(-8, -2);
+        this.life = 255;
+        this.color = color;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.3;
+        this.life -= 5;
+      }
+
+      show() {
+        push();
+        fill(this.color + hex(int(this.life), 2));
+        noStroke();
+        rect(this.x, this.y, 4, 4);
+        pop();
+      }
+
+      isDead() {
+        return this.life <= 0;
+      }
+    }
+
+    // ============================================
+    // LEVEL GENERATION
+    // ============================================
+
+    function generateLevel() {
+      // Ground platforms
+      platforms.push(new Platform(0, height - 40, 200, 40, 'moss'));
+      platforms.push(new Platform(250, height - 40, 150, 40));
+      platforms.push(new Platform(500, height - 40, 300, 40, 'moss'));
+      
+      // Mid platforms
+      platforms.push(new Platform(100, height - 150, 100, 20));
+      platforms.push(new Platform(300, height - 200, 120, 20, 'moss'));
+      platforms.push(new Platform(500, height - 250, 100, 20));
+      
+      // High platforms
+      platforms.push(new Platform(150, height - 350, 80, 20));
+      platforms.push(new Platform(400, height - 400, 100, 20, 'moss'));
+    }
+
+    // ============================================
+    // BACKGROUND (Rain World inspired)
+    // ============================================
+
+    function drawBackground() {
+      push();
+      
+      // Far mountains (parallax 0.2)
+      fill(PALETTE.mountain + '40');
+      noStroke();
+      let mountainY = cameraY * 0.2;
+      beginShape();
+      vertex(0, 400 - mountainY);
+      for (let x = 0; x <= width; x += 40) {
+        let y = 300 + sin(x * 0.01) * 50 - mountainY;
+        vertex(x, y);
+      }
+      vertex(width, 400 - mountainY);
+      vertex(width, height);
+      vertex(0, height);
+      endShape(CLOSE);
+      
+      // Fog layers
+      fill(PALETTE.bgMid + '20');
+      for (let i = 0; i < 3; i++) {
+        let y = 200 + i * 100 - cameraY * (0.3 + i * 0.1);
+        rect(0, y, width, 50);
+      }
+      
+      pop();
+    }
+
+    function drawForeground() {
+      push();
+      
+      // Pipes/ruins (Rain World style)
+      fill(PALETTE.bgDark + 'CC');
+      noStroke();
+      
+      for (let i = 0; i < 5; i++) {
+        let x = i * 200 + 50;
+        let y = 0;
+        rect(x, y - cameraY * 1.2, 8, height + cameraY * 1.2);
+      }
+      
+      pop();
+    }
+
+    // ============================================
+    // HUD
+    // ============================================
+
+    function drawHUD() {
+      push();
+      fill(PALETTE.crystal);
+      textSize(16);
+      textAlign(RIGHT);
+      text(`Crystals: ${5 - collectibles.length}/5`, width - 20, 40);
+      pop();
+    }
+
+    // ============================================
+    // CONTROLS
+    // ============================================
+
+    function keyPressed() {
+      if (key === 'r' || key === 'R') {
+        // Reset
+        player = new Player(width / 2, height / 2);
+        collectibles = [];
+        particles = [];
+        for (let i = 0; i < 5; i++) {
+          collectibles.push(new Crystal(random(100, width - 100), random(100, height - 300)));
+        }
+      }
+    }
+  </script>
+</body>
+</html>

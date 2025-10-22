@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "gamedev-hub": {
+      "url": "http://localhost:3000/sse",
+      "name": "GameDev MCP Hub",
+      "description": "Access to 75+ game development tools across Obsidian, Blender, Godot, and GitHub"
+    }
+  }
+}

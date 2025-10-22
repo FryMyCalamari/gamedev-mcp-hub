@@ -179,3 +179,10 @@ export interface AnalyticsData {
   errors: number;
   averageLatency: number;
 }
+
+export interface ToolCall {
+  id?: string | number;
+  name: string;
+  arguments: Record<string, unknown>;
+  timestamp?: number;
+}

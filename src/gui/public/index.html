@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 GameDev MCP Hub</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="title">
+                    <span class="icon">🎮</span>
+                    GAMEDEV MCP HUB
+                </h1>
+                <span class="version">v0.1.0</span>
+            </div>
+            <div class="header-right">
+                <button class="settings-toggle" id="settingsToggle" aria-label="Settings">
+                    <span class="settings-icon">⚙️</span>
+                </button>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <div class="connection-status">
+                    <span class="status-dot" id="wsStatus"></span>
+                    <span class="status-text" id="wsStatusText">CONNECTING...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Control Panel -->
+        <section class="control-panel">
+            <button class="btn btn-primary" id="connectAllBtn">CONNECT ALL</button>
+            <button class="btn btn-secondary" id="disconnectAllBtn">DISCONNECT ALL</button>
+            <div class="status-summary">
+                <span id="connectionSummary">0/0 CONNECTED</span>
+            </div>
+        </section>
+
+        <!-- Tab Navigation -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="servers">SERVERS</button>
+            <button class="tab" data-tab="clients">CLIENTS</button>
+            <button class="tab" data-tab="logs">LOGS</button>
+            <button class="tab" data-tab="analytics">ANALYTICS</button>
+            <button class="tab" data-tab="docs">DOCS</button>
+        </nav>
+
+        <!-- Servers Tab -->
+        <div class="tab-content active" id="serversTab">
+            <div class="servers-grid" id="serversGrid">
+                <!-- Server cards will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Clients Tab -->
+        <div class="tab-content" id="clientsTab">
+            <div class="info-banner">
+                <p><strong>Multi-Client Mode:</strong> Multiple AI assistants can connect simultaneously via SSE transport.</p>
+                <p><strong>Connection URL:</strong> <code>http://localhost:3000/sse</code></p>
+                <button class="btn-small" onclick="refreshClients()">REFRESH CLIENTS</button>
+            </div>
+            <div id="clientsGrid" class="servers-grid">
+                <!-- Client cards will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div class="tab-content" id="logsTab">
+            <div class="logs-controls">
+                <div class="logs-filters">
+                    <select id="logLevelFilter" class="select">
+                        <option value="all">ALL LEVELS</option>
+                        <option value="debug">DEBUG</option>
+                        <option value="info">INFO</option>
+                        <option value="warn">WARN</option>
+                        <option value="error">ERROR</option>
+                    </select>
+                    <select id="logServerFilter" class="select">
+                        <option value="all">ALL SERVERS</option>
+                    </select>
+                    <input type="text" id="logSearchInput" class="input" placeholder="SEARCH LOGS...">
+                </div>
+                <div class="logs-actions">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autoScrollCheckbox" checked>
+                        AUTO-SCROLL
+                    </label>
+                    <button class="btn btn-small" id="clearLogsBtn">CLEAR</button>
+                    <button class="btn btn-small" id="exportLogsBtn">EXPORT</button>
+                </div>
+            </div>
+            <div class="logs-container" id="logsContainer">
+                <!-- Log entries will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-content" id="analyticsTab">
+            <div class="analytics-grid">
+                <div class="stat-card">
+                    <h3 class="stat-title">TOTAL CALLS</h3>
+                    <div class="stat-value" id="totalCalls">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3 class="stat-title">AVG LATENCY</h3>
+                    <div class="stat-value" id="avgLatency">0ms</div>
+                </div>
+                <div class="stat-card">
+                    <h3 class="stat-title">TOTAL TOKENS</h3>
+                    <div class="stat-value" id="totalTokens">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3 class="stat-title">ERROR RATE</h3>
+                    <div class="stat-value" id="errorRate">0%</div>
+                </div>
+            </div>
+            
+            <div class="analytics-section">
+                <h3 class="section-title">CALLS BY SERVER</h3>
+                <div class="bar-chart" id="callsByServer"></div>
+            </div>
+            
+            <div class="analytics-section">
+                <h3 class="section-title">TOP TOOLS</h3>
+                <div class="table-container">
+                    <table class="data-table" id="topToolsTable">
+                        <thead>
+                            <tr>
+                                <th>TOOL</th>
+                                <th>CALLS</th>
+                                <th>SERVER</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topToolsBody">
+                            <tr>
+                                <td colspan="3">NO DATA</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Docs Tab -->
+        <div class="tab-content" id="docsTab">
+            <div class="docs-sidebar">
+                <h3 class="sidebar-title">SERVERS</h3>
+                <ul class="docs-menu" id="docsMenu">
+                    <!-- Server list will be inserted here -->
+                </ul>
+            </div>
+            <div class="docs-content">
+                <div class="docs-placeholder" id="docsPlaceholder">
+                    <p>SELECT A SERVER TO VIEW DOCUMENTATION</p>
+                </div>
+                <div class="docs-detail" id="docsDetail" style="display: none;">
+                    <h2 class="docs-server-name" id="docsServerName"></h2>
+                    <p class="docs-description" id="docsDescription"></p>
+                    <div class="docs-links">
+                        <a href="#" target="_blank" rel="noopener" id="docsRepoLink" class="docs-link">
+                            📦 REPOSITORY
+                        </a>
+                        <a href="#" target="_blank" rel="noopener" id="docsDocLink" class="docs-link">
+                            📖 DOCUMENTATION
+                        </a>
+                    </div>
+                    <h3 class="docs-section-title">AVAILABLE TOOLS</h3>
+                    <div class="tools-list" id="docsToolsList">
+                        <!-- Tools will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>GAMEDEV MCP HUB © 2025 | LOCALHOST ONLY | <span id="clientCount">0</span> CLIENTS CONNECTED</p>
+    </footer>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙️ SETTINGS</h2>
+                <button class="modal-close" id="closeSettings">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label class="setting-label">
+                        MAIN HEADING SIZE
+                        <span class="setting-value" id="headingSizeValue">30px</span>
+                    </label>
+                    <input 
+                        type="range" 
+                        class="setting-slider" 
+                        id="headingSize" 
+                        min="20" 
+                        max="50" 
+                        value="30" 
+                        step="2"
+                    >
+                    <div class="slider-marks">
+                        <span>20px</span>
+                        <span>50px</span>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">
+                        MEDIUM TEXT SIZE (Tabs, Buttons)
+                        <span class="setting-value" id="mediumTextSizeValue">20px</span>
+                    </label>
+                    <input 
+                        type="range" 
+                        class="setting-slider" 
+                        id="mediumTextSize" 
+                        min="12" 
+                        max="32" 
+                        value="20" 
+                        step="2"
+                    >
+                    <div class="slider-marks">
+                        <span>12px</span>
+                        <span>32px</span>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">
+                        SMALL TEXT SIZE (Body, Descriptions)
+                        <span class="setting-value" id="smallTextSizeValue">16px</span>
+                    </label>
+                    <input 
+                        type="range" 
+                        class="setting-slider" 
+                        id="smallTextSize" 
+                        min="12" 
+                        max="28" 
+                        value="16" 
+                        step="2"
+                    >
+                    <div class="slider-marks">
+                        <span>12px</span>
+                        <span>28px</span>
+                    </div>
+                </div>
+
+                <div class="setting-actions">
+                    <button class="btn btn-secondary btn-small" id="resetSettings">RESET TO DEFAULTS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

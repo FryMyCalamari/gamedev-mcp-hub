@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Particle Constellation - Algorithmic Art</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+    }
+    #controls {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(20, 20, 40, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #4a4aff;
+      z-index: 1000;
+      box-shadow: 0 0 30px rgba(74, 74, 255, 0.5);
+    }
+    h2 {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      color: #4aff4a;
+      letter-spacing: 2px;
+    }
+    .control { margin: 12px 0; }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 10px;
+      color: #aaf;
+      text-transform: uppercase;
+    }
+    input[type="range"] { width: 200px; }
+    .value { color: #4aff4a; font-weight: bold; }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      background: linear-gradient(45deg, #4a4aff, #4aff4a);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      border-radius: 5px;
+      font-size: 11px;
+    }
+    button:hover { transform: scale(1.05); }
+    #info {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(20, 20, 40, 0.9);
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 11px;
+      color: #aaf;
+      border: 2px solid #4a4aff;
+      max-width: 300px;
+    }
+    .highlight { color: #4aff4a; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <h2>★ CONSTELLATION</h2>
+    <div class="control">
+      <label>Particle Count: <span class="value" id="countVal">200</span></label>
+      <input type="range" id="particleCount" min="50" max="500" value="200" oninput="updateCount(this.value)">
+    </div>
+    <div class="control">
+      <label>Connection Distance: <span class="value" id="distVal">150</span></label>
+      <input type="range" id="connectionDist" min="50" max="300" value="150" oninput="updateDist(this.value)">
+    </div>
+    <div class="control">
+      <label>Speed: <span class="value" id="speedVal">0.5</span></label>
+      <input type="range" id="speed" min="0.1" max="2" step="0.1" value="0.5" oninput="updateSpeed(this.value)">
+    </div>
+    <div class="control">
+      <label>Attraction Force: <span class="value" id="attractVal">0.05</span></label>
+      <input type="range" id="attraction" min="0" max="0.2" step="0.01" value="0.05" oninput="updateAttract(this.value)">
+    </div>
+    <button onclick="randomize()">🎲 RANDOMIZE</button>
+    <button onclick="reset()">🔄 RESET</button>
+    <button onclick="saveCanvas('constellation', 'png')">💾 SAVE</button>
+  </div>
+
+  <div id="info">
+    <p><span class="highlight">ALGORITHMIC PHILOSOPHY</span></p>
+    <p>"Particles as stars, connections as constellations."</p>
+    <p>Each particle seeks others, forming organic networks</p>
+    <p>of light. Beauty emerges from proximity and motion.</p>
+    <p style="margin-top: 10px;"><span class="highlight">CLICK</span> to add particles</p>
+    <p><span class="highlight">MOUSE</span> attracts nearby particles</p>
+  </div>
+
+  <script>
+    let params = {
+      count: 200,
+      connectionDist: 150,
+      speed: 0.5,
+      attraction: 0.05
+    };
+
+    let particles = [];
+    let mouseParticle;
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      initParticles();
+      mouseParticle = new Particle(mouseX, mouseY, true);
+    }
+
+    function draw() {
+      background(0, 0, 0, 25);
+      
+      // Update mouse particle
+      mouseParticle.x = mouseX;
+      mouseParticle.y = mouseY;
+      
+      // Update and draw particles
+      for (let i = 0; i < particles.length; i++) {
+        let p = particles[i];
+        
+        // Attract to mouse if close
+        if (params.attraction > 0) {
+          let d = dist(p.x, p.y, mouseX, mouseY);
+          if (d < 200) {
+            let force = map(d, 0, 200, params.attraction, 0);
+            let angle = atan2(mouseY - p.y, mouseX - p.x);
+            p.vx += cos(angle) * force;
+            p.vy += sin(angle) * force;
+          }
+        }
+        
+        p.update();
+        p.edges();
+        
+        // Draw connections
+        for (let j = i + 1; j < particles.length; j++) {
+          let p2 = particles[j];
+          let d = dist(p.x, p.y, p2.x, p2.y);
+          
+          if (d < params.connectionDist) {
+            let alpha = map(d, 0, params.connectionDist, 255, 0);
+            stroke(74, 74, 255, alpha * 0.5);
+            strokeWeight(1);
+            line(p.x, p.y, p2.x, p2.y);
+          }
+        }
+        
+        p.show();
+      }
+    }
+
+    class Particle {
+      constructor(x, y, isFixed = false) {
+        this.x = x || random(width);
+        this.y = y || random(height);
+        this.vx = random(-1, 1) * params.speed;
+        this.vy = random(-1, 1) * params.speed;
+        this.size = random(2, 5);
+        this.isFixed = isFixed;
+        this.hue = random(200, 280);
+      }
+
+      update() {
+        if (!this.isFixed) {
+          this.x += this.vx;
+          this.y += this.vy;
+          
+          // Slight random walk
+          this.vx += random(-0.1, 0.1);
+          this.vy += random(-0.1, 0.1);
+          
+          // Limit speed
+          let speed = sqrt(this.vx * this.vx + this.vy * this.vy);
+          if (speed > params.speed * 2) {
+            this.vx = (this.vx / speed) * params.speed * 2;
+            this.vy = (this.vy / speed) * params.speed * 2;
+          }
+        }
+      }
+
+      edges() {
+        if (this.x > width) this.x = 0;
+        if (this.x < 0) this.x = width;
+        if (this.y > height) this.y = 0;
+        if (this.y < 0) this.y = height;
+      }
+
+      show() {
+        noStroke();
+        
+        // Glow effect
+        for (let i = 3; i > 0; i--) {
+          fill(this.hue, 255, 255, 50 / i);
+          circle(this.x, this.y, this.size * i * 2);
+        }
+        
+        // Core
+        fill(255);
+        circle(this.x, this.y, this.size);
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < params.count; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function updateCount(val) {
+      params.count = parseInt(val);
+      document.getElementById('countVal').textContent = val;
+      initParticles();
+    }
+
+    function updateDist(val) {
+      params.connectionDist = parseInt(val);
+      document.getElementById('distVal').textContent = val;
+    }
+
+    function updateSpeed(val) {
+      params.speed = parseFloat(val);
+      document.getElementById('speedVal').textContent = val;
+      particles.forEach(p => {
+        p.vx = (p.vx / abs(p.vx || 1)) * params.speed;
+        p.vy = (p.vy / abs(p.vy || 1)) * params.speed;
+      });
+    }
+
+    function updateAttract(val) {
+      params.attraction = parseFloat(val);
+      document.getElementById('attractVal').textContent = val;
+    }
+
+    function randomize() {
+      params.count = floor(random(100, 400));
+      params.connectionDist = floor(random(80, 250));
+      params.speed = random(0.3, 1.5);
+      params.attraction = random(0, 0.15);
+      
+      document.getElementById('particleCount').value = params.count;
+      document.getElementById('connectionDist').value = params.connectionDist;
+      document.getElementById('speed').value = params.speed;
+      document.getElementById('attraction').value = params.attraction;
+      
+      updateCount(params.count);
+      updateDist(params.connectionDist);
+      updateSpeed(params.speed);
+      updateAttract(params.attraction);
+    }
+
+    function reset() {
+      initParticles();
+      background(0);
+    }
+
+    function mousePressed() {
+      particles.push(new Particle(mouseX, mouseY));
+      params.count++;
+      document.getElementById('countVal').textContent = params.count;
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+  </script>
+</body>
+</html>

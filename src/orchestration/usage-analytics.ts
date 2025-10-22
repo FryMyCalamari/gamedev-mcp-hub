@@ -61,7 +61,6 @@ export class UsageAnalytics {
     }
 
     const totalCalls = records.length;
-    const successfulCalls = records.filter((r) => r.success);
     const totalErrors = records.filter((r) => !r.success).length;
 
     // Calculate metrics

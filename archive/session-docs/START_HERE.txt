@@ -1,0 +1,47 @@
+================================================================================
+                    GAMEDEV MCP HUB - START HERE
+================================================================================
+
+TO START THE HUB:
+
+    → Double-click: start-gui-with-browser.bat
+
+That's it! Everything else is automatic.
+
+================================================================================
+
+WHAT HAPPENS:
+    1. Checks dependencies
+    2. Builds if needed
+    3. Starts hub (SSE multi-client mode)
+    4. Opens browser to http://localhost:3100
+    5. All 7 servers connect
+
+PORTS:
+    - SSE Endpoint: http://localhost:3000/sse
+    - GUI Dashboard: http://localhost:3100
+
+MEMORY:
+    - Normal usage: 150-250 MB (hub only)
+    - Auto-cleanup every 5 minutes
+    - No memory leaks!
+    - Safe to run 24/7
+
+TO STOP:
+    - Press Ctrl+C in terminal
+    - Or close terminal window
+
+TROUBLESHOOTING:
+    - Something broken? → Just restart the .bat file
+    - Everything auto-reconnects
+
+MORE INFO:
+    - See: START_INSTRUCTIONS.md
+    - Memory details: docs/MEMORY_MANAGEMENT.md
+
+================================================================================
+
+                    STOP LOOKING FOR OTHER COMMANDS!
+                    THIS .BAT FILE IS THE ANSWER! 🚀
+
+================================================================================

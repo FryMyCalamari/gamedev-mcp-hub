@@ -97,18 +97,19 @@ export class UnityAdapter extends EventEmitter {
       const result = await this.waitForResponse(toolCall.id);
 
       return {
-        success: true,
-        data: result,
-        toolName: toolCall.name,
-        executionTime: Date.now() - toolCall.timestamp,
+        content: [{
+          type: 'text',
+          text: JSON.stringify(result)
+        }]
       };
     } catch (error) {
       logger.error(`[Unity] Tool execution failed:`, error);
       return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        toolName: toolCall.name,
-        executionTime: Date.now() - toolCall.timestamp,
+        content: [{
+          type: 'text',
+          text: error instanceof Error ? error.message : 'Unknown error'
+        }],
+        isError: true
       };
     }
   }
@@ -229,7 +230,7 @@ export class UnityAdapter extends EventEmitter {
    * Wait for response from server
    * TODO: Implement proper response queue and matching
    */
-  private async waitForResponse(id: string): Promise<any> {
+  private async waitForResponse(_id: string | number | undefined): Promise<any> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Response timeout'));

@@ -6,23 +6,37 @@ import winston from 'winston';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { EventEmitter } from 'events';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export class Logger {
-  private static instance: winston.Logger;
+interface LogEntry {
+  timestamp: string;
+  level: string;
+  message: string;
+  meta?: any;
+}
 
-  private constructor() {}
+export class Logger extends EventEmitter {
+  private static instance: Logger;
+  private winstonLogger: winston.Logger;
+  private logHistory: LogEntry[] = [];
+  private maxHistorySize: number = 1000;
 
-  public static getInstance(): winston.Logger {
+  private constructor() {
+    super();
+    this.winstonLogger = this.createLogger();
+  }
+
+  public static getInstance(): Logger {
     if (!Logger.instance) {
-      Logger.instance = Logger.createLogger();
+      Logger.instance = new Logger();
     }
     return Logger.instance;
   }
 
-  private static createLogger(): winston.Logger {
+  private createLogger(): winston.Logger {
     const logLevel = process.env.LOG_LEVEL || 'info';
     const logDir = path.join(__dirname, '../../logs');
 
@@ -63,9 +77,57 @@ export class Logger {
     return logger;
   }
 
-  public static setLevel(level: string): void {
-    if (Logger.instance) {
-      Logger.instance.level = level;
+  private addToHistory(level: string, message: string, meta?: any): void {
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      meta,
+    };
+
+    this.logHistory.push(entry);
+
+    // Keep history size limited
+    if (this.logHistory.length > this.maxHistorySize) {
+      this.logHistory.shift();
     }
+
+    // Emit log event for WebSocket clients
+    this.emit('log', entry);
+  }
+
+  public info(message: string, ...meta: any[]): void {
+    this.winstonLogger.info(message, ...meta);
+    this.addToHistory('info', message, meta.length > 0 ? meta : undefined);
+  }
+
+  public error(message: string, ...meta: any[]): void {
+    this.winstonLogger.error(message, ...meta);
+    this.addToHistory('error', message, meta.length > 0 ? meta : undefined);
+  }
+
+  public warn(message: string, ...meta: any[]): void {
+    this.winstonLogger.warn(message, ...meta);
+    this.addToHistory('warn', message, meta.length > 0 ? meta : undefined);
+  }
+
+  public debug(message: string, ...meta: any[]): void {
+    this.winstonLogger.debug(message, ...meta);
+    this.addToHistory('debug', message, meta.length > 0 ? meta : undefined);
+  }
+
+  public getRecentLogs(limit: number = 100): LogEntry[] {
+    return this.logHistory.slice(-limit);
+  }
+
+  public clearHistory(): void {
+    this.logHistory = [];
+  }
+
+  public setLevel(level: string): void {
+    this.winstonLogger.level = level;
   }
 }
+
+// Export a singleton instance for convenience
+export const logger = Logger.getInstance();

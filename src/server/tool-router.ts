@@ -60,34 +60,36 @@ export class ToolRouter {
   }
 
   /**
-   * Execute a tool on a specific server (stub implementation)
+   * Execute a tool on a specific server using MCP protocol
    */
   private async executeToolOnServer(
     serverName: string,
     toolName: string,
     args: Record<string, unknown>
   ): Promise<ToolResult & { tokens?: number }> {
-    // This is a stub implementation
-    // In a real implementation, this would:
-    // 1. Serialize the tool call request
-    // 2. Send it to the MCP server via stdio
-    // 3. Wait for and deserialize the response
-    // 4. Return the result
-
     logger.debug(`Executing tool ${toolName} on server ${serverName} with args:`, args);
 
-    // Simulate execution
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    try {
+      const response = await this.connectionManager.callTool(serverName, toolName, args);
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Tool ${toolName} executed successfully on ${serverName} (stub implementation)`,
-        },
-      ],
-      tokens: 50, // Stub token count
-    };
+      // MCP tool call response format: { content: [...], isError?: boolean }
+      return {
+        content: response.content || [],
+        isError: response.isError || false,
+        tokens: 50, // TODO: Extract actual token count if provided by server
+      };
+    } catch (error) {
+      logger.error(`Tool execution failed for ${toolName} on ${serverName}:`, error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error executing tool: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
+      };
+    }
   }
 
   /**

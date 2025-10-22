@@ -17,6 +17,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { HubServer } from './server/hub-server.js';
+import { GuiServer } from './gui/gui-server.js';
 import { ConfigLoader } from './utils/config-loader.js';
 import { Logger } from './utils/logger.js';
 
@@ -51,13 +52,21 @@ async function main() {
     const hubServer = new HubServer(config, server);
     await hubServer.initialize();
 
+    // Start GUI server if enabled - with intelligent port allocation
+    let guiServer: GuiServer | null = null;
+    if (config.features?.rest_api) {
+      guiServer = new GuiServer(hubServer, 3100);
+      await guiServer.start();
+    }
+
     // Register handlers
     server.setRequestHandler(ListToolsRequestSchema, async () => {
       return hubServer.listTools();
     });
 
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      return hubServer.callTool(request.params.name, request.params.arguments ?? {});
+      const result = await hubServer.callTool(request.params.name, request.params.arguments ?? {});
+      return result as any; // Type cast for MCP SDK compatibility
     });
 
     server.setRequestHandler(ListResourcesRequestSchema, async () => {
@@ -72,18 +81,24 @@ async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
 
+    // Track stdio client (LM Studio, Claude, etc.)
+    const clientName = process.env.MCP_CLIENT_NAME || 'stdio-client';
+    hubServer.registerStdioClient(clientName);
+
     logger.info('GameDev MCP Hub is running on stdio transport');
     logger.info(`Downstream servers: ${hubServer.getConnectedServersCount()}`);
 
     // Handle graceful shutdown
     process.on('SIGINT', async () => {
       logger.info('Received SIGINT, shutting down gracefully...');
+      if (guiServer) await guiServer.stop();
       await hubServer.shutdown();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
       logger.info('Received SIGTERM, shutting down gracefully...');
+      if (guiServer) await guiServer.stop();
       await hubServer.shutdown();
       process.exit(0);
     });

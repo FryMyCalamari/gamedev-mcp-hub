@@ -6,7 +6,18 @@
       "Bash(gh:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(npm install)",
+      "Bash(where:*)",
+      "Read(//d//**)",
+      "Bash(npm run build:*)",
+      "Bash(node dist/index.js:*)",
+      "WebSearch",
+      "Bash(uv --version:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(node test-blender.js:*)",
+      "Bash(node test-blender-comprehensive.js:*)"
     ],
     "deny": [],
     "ask": []

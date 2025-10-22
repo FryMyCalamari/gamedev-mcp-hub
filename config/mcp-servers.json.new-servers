@@ -1,0 +1,17 @@
+{
+  "comment": "Add this to the servers section of mcp-servers.json",
+  "thingiverse": {
+    "enabled": true,
+    "command": "npx",
+    "args": ["-y", "@gpaul-mcp/MCP_thingiverse"],
+    "category": "3d-models",
+    "priority": "medium",
+    "auto_reconnect": true,
+    "retry_attempts": 3,
+    "timeout": 30000,
+    "description": "Thingiverse 3D model search and retrieval integration",
+    "env": {
+      "THINGIVERSE_API_TOKEN": "${THINGIVERSE_API_TOKEN}"
+    }
+  }
+}
